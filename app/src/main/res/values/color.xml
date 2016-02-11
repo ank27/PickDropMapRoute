@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="list_item_title">#000000</color>
+    <color name="list_background">#FFFFFF</color>
+    <color name="list_background_pressed">#C8E6C9</color>
+    <color name="list_divider">#dddddd</color>
+    <color name="counter_text_bg">#4e7c36</color>
+    <color name="counter_text_color">#FFFFFF</color>
+
+    <color name="colorPrimary">#009688</color>
+    <color name="colorPrimaryDark">#00796B</color>
+    <color name="colorAccent">#009688</color>
+    <color name="textColorPrimary">#FFFFFF</color>
+    <color name="windowBackground">#FFFFFF</color>
+    <color name="border_color">#e2e2e2</color>
+</resources>

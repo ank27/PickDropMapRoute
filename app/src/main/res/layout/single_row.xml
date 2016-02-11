@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_margin="5dp"
+    android:background="#ffffff"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:weightSum="2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+    <TextView
+        android:textSize="18dp"
+        android:textAlignment="center"
+        android:padding="5dp"
+        android:layout_weight="1"
+        android:text="Pick Up point"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <TextView
+        android:text="Powai"
+        android:id="@+id/pickPoint"
+        android:padding="5dp"
+        android:textSize="16dp"
+        android:textAlignment="center"
+        android:layout_weight="1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    </LinearLayout>
+    <LinearLayout
+        android:weightSum="2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+    <TextView
+        android:textSize="18dp"
+        android:text="Drop Point"
+        android:padding="5dp"
+        android:layout_weight="1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <TextView
+        android:text="Royal Palm"
+        android:textSize="16dp"
+        android:id="@+id/dropPoint"
+        android:layout_weight="1"
+        android:padding="5dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+        </LinearLayout>
+    <LinearLayout
+        android:weightSum="2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+    <TextView
+        android:textSize="18dp"
+        android:layout_weight="1"
+        android:text="Pick up time"
+        android:padding="5dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <TextView
+        android:text="9:00"
+        android:id="@+id/pickTime"
+        android:layout_weight="1"
+        android:padding="5dp"
+        android:textSize="16dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+        </LinearLayout>
+        <LinearLayout
+            android:weightSum="2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+    <TextView
+        android:textSize="18dp"
+        android:text="Drop Time"
+        android:padding="5dp"
+        android:layout_weight="1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <TextView
+        android:text="12:00"
+        android:layout_weight="1"
+        android:id="@+id/dropTime"
+        android:textSize="16dp"
+        android:padding="5dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+            </LinearLayout>
+
+    <Button
+        android:id="@+id/show_map_button"
+        android:text="Show Route"
+        android:padding="10dp"
+        android:textColor="@color/colorAccent"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="10dp"
+        android:textAllCaps="false"
+        android:paddingLeft="50dp"
+        android:paddingRight="50dp"
+        android:background="@drawable/round_border_button"
+        android:layout_width="match_parent"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal" />
+</LinearLayout>
