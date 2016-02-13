@@ -14,11 +14,12 @@ public class Common extends Application {
     public static final LatLng VERLI=new LatLng(19.0088792,72.8130712);
     public static LatLng pickselected=null;
     public static LatLng dropselected=null;
+    public static LatLng userLocation=null;
     public static String pickPoint="";
     public static String dropPoint="";
-    public static String distance="";
-    public static String time="";
-
+    public static ArrayList<String> distance=new ArrayList<String>();
+    public static ArrayList<String> time=new ArrayList<String>();
+    public static boolean fromUsertoPick=true;
     @Override
 
     public void onCreate() {

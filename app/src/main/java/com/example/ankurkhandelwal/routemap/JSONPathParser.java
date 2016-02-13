@@ -28,10 +28,10 @@ public class JSONPathParser {
                 List<HashMap<String, String>> path = new ArrayList<HashMap<String, String>>();
                 jdistance=jLegs.getJSONObject(i).getJSONObject("distance");
                 String distance=jdistance.getString("text");
-                Common.distance=distance;
+                Common.distance.add(distance);
                 jduration=jLegs.getJSONObject(i).getJSONObject("duration");
                 String duration=jduration.getString("text");
-                Common.time=duration;
+                Common.time.add(duration);
 //                MapsActivity.time_view.setText(duration);
 
                 /** Traversing all legs */

@@ -53,26 +53,70 @@
         android:id="@+id/dist_layout"
         android:layout_width="match_parent"
         android:background="#555"
+        android:weightSum="2"
         android:layout_alignParentBottom="true"
-        android:orientation="horizontal"
-        android:layout_height="70dp">
-        <TextView
-            android:id="@+id/time_view"
-            android:text=""
-            android:padding="10dp"
-            android:layout_marginLeft="20dp"
-            android:textColor="@color/colorAccent"
-            android:textSize="30dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-        <TextView
-            android:id="@+id/distance_view"
-            android:text=""
-            android:padding="10dp"
-            android:layout_marginLeft="50dp"
-            android:textColor="@color/colorAccent"
-            android:textSize="20dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+        android:orientation="vertical"
+        android:layout_height="100dp">
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_weight="1"
+            android:layout_height="wrap_content">
+            <TextView
+                android:text="==== Current to pickUp"
+                android:textSize="15dp"
+                android:textStyle="bold"
+                android:typeface="sans"
+                android:padding="5dp"
+                android:textColor="#F44336"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <TextView
+                android:id="@+id/time_view_user"
+                android:text=""
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="20dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <TextView
+                android:id="@+id/distance_view_user"
+                android:text=""
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="20dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_weight="1"
+            android:layout_height="wrap_content">
+            <TextView
+                android:text="====  PickUp to Drop"
+                android:textColor="#03A9F4"
+                android:padding="5dp"
+                android:textSize="15dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <TextView
+                android:id="@+id/time_view_pick"
+                android:text=""
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="20dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <TextView
+                android:id="@+id/distance_view_pick"
+                android:text=""
+                android:layout_marginLeft="20dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="20dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
     </LinearLayout>
 </RelativeLayout>

@@ -49,19 +49,19 @@ public class ListAdapter extends BaseAdapter{
                     pickPoint.setText("Powai");
                     pickTime.setText("10:00");
                     dropPoint.setText("Chandivali");
-                    dropTime.setText("12:00");
+                    dropTime.setText("01:00");
                     break;
                 case 1:
                     pickPoint.setText("Powai");
                     pickTime.setText("10:00");
                     dropPoint.setText("Vikhroli");
-                    dropTime.setText("12:00");
+                    dropTime.setText("01:00");
                     break;
                 case 2:
                     pickPoint.setText("Worli");
                     pickTime.setText("10:00");
                     dropPoint.setText("Vikhroli");
-                    dropTime.setText("12:00");
+                    dropTime.setText("01:00");
             }
 
             show_map.setOnClickListener(new View.OnClickListener() {

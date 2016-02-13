@@ -43,6 +43,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -57,26 +58,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class MapsActivity extends FragmentActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, ResultCallback<LocationSettingsResult> {
+public class MapsActivity extends FragmentActivity implements GoogleMap.OnMarkerClickListener{
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     Toolbar toolbar;
-
-    protected static final String TAG = "MapActivity";
-    protected static final int REQUEST_CHECK_SETTINGS = 0x1;
-    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 1000*60;
-    public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = UPDATE_INTERVAL_IN_MILLISECONDS / 2;
-    protected GoogleApiClient mGoogleApiClient;
-    protected LocationRequest mLocationRequest;
-    protected LocationSettingsRequest mLocationSettingsRequest;
-    protected Location mCurrentLocation;
-    protected Boolean mRequestingLocationUpdates;
-    protected String mLastUpdateTime;
-
+    String TAG="MapsActivity";
     ProgressBar progressBar;
     ProgressDialog progressDialog;
     TextView pickup_detail,drop_detail;
     PolylineOptions lineOptions = null;
-    public static TextView time_view,distance_view;
+    public static TextView time_view_pick,distance_view_pick,time_view_user,distance_view_user;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -92,48 +82,32 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
                 return true;
             }
         });
-        time_view=(TextView) findViewById(R.id.time_view);
-        distance_view=(TextView) findViewById(R.id.distance_view);
+        time_view_user=(TextView) findViewById(R.id.time_view_user);
+        distance_view_user=(TextView) findViewById(R.id.distance_view_user);
+        time_view_pick=(TextView) findViewById(R.id.time_view_pick);
+        distance_view_pick=(TextView) findViewById(R.id.distance_view_pick);
         pickup_detail=(TextView) findViewById(R.id.pickup_detail);
         drop_detail=(TextView) findViewById(R.id.drop_details);
         pickup_detail.setText("PickUp : "+ Common.pickPoint +" 10:00 ");
-        drop_detail.setText("Drop : "+ Common.dropPoint +" 12:00");
+        drop_detail.setText("Drop : " + Common.dropPoint + " 01:00");
+        Log.d(TAG, "onCreate");
         set_map();
-        mLastUpdateTime = "";
-        mRequestingLocationUpdates=false;
-        buildGoogleApiClient();
-        createLocationRequest();
-        buildLocationSettingsRequest();
+        mMap.setOnMarkerClickListener(this);
+    }
+
+    private void reset_location_data() {
+        mMap.clear();
+        setUpMap();
+        set_map();
     }
 
     public void set_map(){
+        Log.d(TAG, "set_map_called");
         setUpMapIfNeeded();
         addMarkers();
-        String url = getMapDirection();
+        String url = getMapDirection(Common.pickselected,Common.dropselected);
         ReqAsyncTask task = new ReqAsyncTask();
         task.execute(url);
-
-    }
-    protected synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(MapsActivity.this)
-                .addConnectionCallbacks(MapsActivity.this)
-                .addOnConnectionFailedListener(MapsActivity.this)
-                .addApi(LocationServices.API)
-                .build();
-    }
-
-    protected void createLocationRequest() {
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
-        mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-    }
-
-    protected void buildLocationSettingsRequest() {
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
-        builder.addLocationRequest(mLocationRequest);
-        builder.setAlwaysShow(true);
-        mLocationSettingsRequest = builder.build();
 
     }
 
@@ -141,11 +115,7 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
-        if(null!=mGoogleApiClient) {
-            if (mGoogleApiClient.isConnected() && mRequestingLocationUpdates) {
-//                startLocationUpdates();
-            }
-        }
+        Log.d(TAG, "onResume");
     }
 
     private void addMarkers() {
@@ -155,9 +125,9 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
         }
     }
 
-    private String getMapDirection() {
-        String url="https://maps.googleapis.com/maps/api/directions/json?"+ "origin=" + Common.pickselected.latitude + "," + Common.pickselected.longitude
-                + "&destination=" + Common.dropselected.latitude + "," + Common.dropselected.longitude
+    private String getMapDirection(LatLng location1,LatLng location2) {
+        String url="https://maps.googleapis.com/maps/api/directions/json?"+ "origin=" + location1.latitude + "," + location1.longitude
+                + "&destination=" + location2.latitude + "," + location2.longitude
                 + "&sensor=false&units=metric&mode=driving";
         Log.d("waypoint_url ", url);
         return url;
@@ -165,9 +135,11 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
 
     private void setUpMapIfNeeded() {
         if (mMap == null) {
+            Log.d(TAG,"map is null");
             // Try to obtain the map from the SupportMapFragment.
             mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
                     .getMap();
+            setUpMap();
             // Check if we were successful in obtaining the map.
             if (mMap != null) {
                 setUpMap();
@@ -185,7 +157,6 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(Common.pickselected, 13));
     }
 
-
     private class ReqAsyncTask extends AsyncTask<String,Void,String> {
         @Override
         protected String doInBackground(String... url) {
@@ -193,10 +164,10 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
             try{
                 // Fetching the data from web service
                 HttpConnection http = new HttpConnection();
-                Log.d("ReqAsyncTask ",url[0]);
+//                Log.d("ReqAsyncTask ",url[0]);
                 data = http.readUrl(url[0]);
             }catch(Exception e){
-                Log.d("Background Task", e.toString());
+//                Log.d("Background Task", e.toString());
             }
             return data;
         }
@@ -256,28 +227,119 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
             }
             // Drawing polyline in the Google Map for the i-th route
             mMap.addPolyline(lineOptions);
+            distance_view_pick.setText(Common.distance.get(0));
+            time_view_pick.setText(Common.time.get(0));
+            set_user_pick_map();
+        }
+    }
+
+    private void set_user_pick_map() {
+        String url_from_user = getMapDirection(Common.userLocation,Common.pickselected);
+        ReqTask task_new = new ReqTask();
+        task_new.execute(url_from_user);
+    }
+
+    private class ReqTask extends AsyncTask<String,Void,String> {
+        @Override
+        protected String doInBackground(String... url) {
+            String data = "";
+            try{
+                // Fetching the data from web service
+                HttpConnection http = new HttpConnection();
+//                Log.d("ReqAsyncTask ",url[0]);
+                data = http.readUrl(url[0]);
+            }catch(Exception e){
+//                Log.d("Background Task", e.toString());
+            }
+            return data;
+        }
+
+        // Executes in UI thread, after the execution
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            ParTask parserTask = new ParTask();
+            // Invokes the thread for parsing the JSON data
+            parserTask.execute(result);
+        }
+    }
+
+    private class ParTask extends AsyncTask<String, Integer, List<List<HashMap<String,String>>> >{
+        // Parsing the data in non-ui thread
+        @Override
+        protected List<List<HashMap<String, String>>> doInBackground(String... jsonData) {
+
+            JSONObject jObject;
+            List<List<HashMap<String, String>>> routes = null;
+            try{
+                jObject = new JSONObject(jsonData[0]);
+                JSONPathParser parser = new JSONPathParser();
+                // Starts parsing data
+                routes = parser.parse(jObject);
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+            return routes;
+        }
+
+        // Executes in UI thread, after the parsing process
+        @Override
+        protected void onPostExecute(List<List<HashMap<String, String>>> result) {
+            ArrayList<LatLng> points = null;
+            // Traversing through all the routes
+            for(int i=0;i<result.size();i++){
+                points = new ArrayList<LatLng>();
+                lineOptions = new PolylineOptions();
+                // Fetching i-th route
+                List<HashMap<String, String>> path = result.get(i);
+                // Fetching all the points in i-th route
+                for(int j=0;j<path.size();j++){
+                    HashMap<String,String> point = path.get(j);
+
+                    double lat = Double.parseDouble(point.get("lat"));
+                    double lng = Double.parseDouble(point.get("lng"));
+                    LatLng position = new LatLng(lat, lng);
+                    points.add(position);
+                }
+
+                // Adding all the points in the route to LineOptions
+                lineOptions.addAll(points);
+                lineOptions.width(15);
+                lineOptions.color(Color.RED);
+            }
+            // Drawing polyline in the Google Map for the i-th route
+            mMap.addPolyline(lineOptions);
             set_camera_position();
-            distance_view.setText(Common.distance);
-            time_view.setText(Common.time);
+            distance_view_user.setText(Common.distance.get(1));
+            time_view_user.setText(Common.time.get(1));
+//            set_user_pick_map();
 //            distance_between.setText(distance);
 //            time_taken.setText(duration);
         }
     }
 
     private void set_camera_position(){
-        Projection projection = mMap.getProjection();
-        LatLng markerLocation = Common.pickselected;
-        Point screenPosition = projection.toScreenLocation(markerLocation);
-        Point mappoint = mMap.getProjection().toScreenLocation(Common.pickselected);
-        mappoint.set(mappoint.x, mappoint.y-30);
+        Point mappoint = mMap.getProjection().toScreenLocation(Common.userLocation);
+        mappoint.set(mappoint.x, mappoint.y - 30);
         mMap.animateCamera(CameraUpdateFactory.newLatLng(mMap.getProjection().fromScreenLocation(mappoint)));
+        Marker marker= mMap.addMarker(new MarkerOptions().position(Common.userLocation).title("Your location"));
+        onMarkerClick(marker);
 
     }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        marker.setTitle("Your Location");
+        return false;
+    }
+
 
     @Override
     public void onBackPressed(){
         Common.pickselected=null;
         Common.dropselected=null;
+        Common.distance.clear();
+        Common.time.clear();
         mMap.clear();
         super.onBackPressed();
     }
@@ -289,32 +351,11 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
         menu_refresh.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                reset_location_data();
+//                reset_location_data();
                 return false;
             }
         });
         return true;
-    }
-
-    private void reset_location_data() {
-        if (mCurrentLocation == null) {
-            mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
-            checkLocationSettings();
-            if (mCurrentLocation != null) {
-                LatLng user_location= new LatLng(mCurrentLocation.getLatitude(),mCurrentLocation.getLongitude());
-                Common.pickselected=user_location;
-                mMap.clear();
-                Toast.makeText(getApplicationContext(), "User location changed", Toast.LENGTH_LONG).show();
-                set_map();
-            }
-        }else {
-            LatLng user_location= new LatLng(mCurrentLocation.getLatitude(),mCurrentLocation.getLongitude());
-            Common.pickselected=user_location;
-            mMap.clear();
-            Toast.makeText(getApplicationContext(), "User location changed", Toast.LENGTH_LONG).show();
-            set_map();
-        }
     }
 
     @Override
@@ -336,131 +377,16 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.Co
     @Override
     protected void onStart() {
         super.onStart();
-        if(mGoogleApiClient!= null) {
-            mGoogleApiClient.connect();
-        }
     }
 
 
     @Override
     protected void onPause() {
         super.onPause();
-        if(null!=mGoogleApiClient) {
-            if (mGoogleApiClient.isConnected()) {
-//                stopLocationUpdates();
-            }
-        }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        if (null != mGoogleApiClient) {
-            mGoogleApiClient.disconnect();
-        }
-    }
-
-    protected void checkLocationSettings() {
-        PendingResult<LocationSettingsResult> result =
-                LocationServices.SettingsApi.checkLocationSettings(
-                        mGoogleApiClient,
-                        mLocationSettingsRequest
-                );
-        result.setResultCallback(this);
-    }
-
-    @Override
-    public void onResult(LocationSettingsResult locationSettingsResult) {
-        final Status status = locationSettingsResult.getStatus();
-        switch (status.getStatusCode()) {
-            case LocationSettingsStatusCodes.SUCCESS:
-                Log.i(TAG, "All location settings are satisfied.");
-                startLocationUpdates();
-                break;
-            case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                Log.i(TAG, "Location settings are not satisfied. Show the user a dialog to" +
-                        "upgrade location settings ");
-                try {
-                    status.startResolutionForResult(MapsActivity.this, REQUEST_CHECK_SETTINGS);
-                } catch (IntentSender.SendIntentException e) {
-                    Log.i(TAG, "PendingIntent unable to execute request.");
-                }
-                break;
-            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                Log.i(TAG, "Location settings are inadequate, and cannot be fixed here. Dialog " +
-                        "not created.");
-                progressBar.setVisibility(View.GONE);
-                Toast.makeText(getApplicationContext(),"No Date",Toast.LENGTH_LONG).show();
-                break;
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case REQUEST_CHECK_SETTINGS:
-                switch (resultCode) {
-                    case Activity.RESULT_OK:
-                        Log.i(TAG, "User agreed to make required location settings changes.");
-                        startLocationUpdates();
-                        break;
-                    case Activity.RESULT_CANCELED:
-                        Log.i(TAG, "User chose not to make required location settings changes.");
-                        this.finish();
-                        break;
-                }
-                break;
-        }
-    }
-
-    protected void startLocationUpdates() {
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this).setResultCallback(new ResultCallback<Status>() {
-            @Override
-            public void onResult(Status status) {
-                mRequestingLocationUpdates = true;
-            }
-        });
-
-    }
-
-    @Override
-    public void onConnected(Bundle connectionHint) {
-        if (mCurrentLocation == null) {
-            mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
-            checkLocationSettings();
-            if (mCurrentLocation != null) {
-                set_user_location(mCurrentLocation);
-            }
-        }
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        mCurrentLocation = location;
-        mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
-        set_user_location(mCurrentLocation);
-    }
-
-    @Override
-    public void onConnectionSuspended(int cause) {
-        Log.i(TAG, "Connection suspended");
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult result) {
-        Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
-    }
-
-    private void set_user_location(Location location) {
-        LatLng user_location= new LatLng(location.getLatitude(),location.getLongitude());
-//        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-//        try {
-//            List<Address> addresses = geocoder.getFromLocation(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude(), 1);
-//            user_location_text.setText(addresses.get(0).getAddressLine(0) + " " + addresses.get(0).getSubLocality());
-//
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
     }
 }
